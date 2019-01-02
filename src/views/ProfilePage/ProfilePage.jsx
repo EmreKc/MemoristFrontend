@@ -1,4 +1,5 @@
 import React from "react";
+import $ from 'jquery';
 // nodejs library that concatenates classes
 import classNames from "classnames";
 // @material-ui/core components
@@ -36,6 +37,9 @@ import work3 from "assets/img/examples/cynthia-del-rio.jpg";
 import work4 from "assets/img/examples/mariya-georgieva.jpg";
 import work5 from "assets/img/examples/clem-onojegaw.jpg";
 import PropTypes from 'prop-types';
+import Select from '@material-ui/core/Select';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
 
 import profilePageStyle from "assets/jss/material-kit-react/views/profilePage.jsx";
 
@@ -57,17 +61,83 @@ class ProfilePage extends React.Component {
       last_name: '',
       email:'',
       gender: '',
-      locations: '',
+      location: '',
     }
       
-
+    this.handleChange = this.handleChange.bind(this);
+    this.handleEdit = this.handleEdit.bind(this);
   }
 
   componentDidMount(){
 
     
   }
+  handleEdit(event) {
+    var str = "";
+ 
+    var first_name = this.state.first_name;
+    if(first_name.localeCompare(str) == 0){
+      first_name = this.props.profileInfo.first_name;
+    }
+    var last_name = this.state.last_name;
+    if(last_name.localeCompare(str) == 0){
+      last_name = this.props.profileInfo.last_name;
+    }
+   
+    var gender = this.state.gender;
+    if(gender == null || gender.localeCompare(str) == 0){
+      gender = this.props.profileInfo.gender;
+    }
+    var location = this.state.location;
+    if(location == null || location.localeCompare(str) == 0){
+      location = this.props.profileInfo.location;
+    }
 
+    var body = {
+      //username: username,
+      first_name: first_name,
+      last_name: last_name,
+      //email: email,
+      gender: gender,
+      location: location,
+      
+    }
+    var userToken = localStorage.getItem('token');
+    $.ajax({
+      url: "http://ec2-18-234-162-48.compute-1.amazonaws.com:8000/auth/profile_update/",
+      data: JSON.stringify(body),
+      type: "POST",
+      crossDomain : true,
+      headers: {
+        'Content-Type' : 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Authorization' : 'JWT ' + userToken,
+      },
+      beforeSend: () => {
+        console.log();
+      },
+      success: (res) => {
+        
+        console.log("SUCCESS! Result: " + res);
+        
+      },
+      error: (res, err) => {
+        console.log(body);
+      
+        console.log("ERR " + res);
+      }
+    });
+    console.log(body);
+   
+
+    event.preventDefault();
+  }
+
+  handleChange = event => {
+    this.setState({ [event.target.name]: event.target.value });
+  };
 
   render() {
     console.log(this.props.profileInfo);
@@ -77,6 +147,15 @@ class ProfilePage extends React.Component {
       classes.imgRoundedCircle,
       classes.imgFluid
     );
+    const gen = this.props.profileInfo.gender;
+    var genString = "";
+    if (gen == 1){
+      genString = "Male";
+    }else if(gen == 2){
+      genString = "Female";
+    }else{
+      genString = "Other\/Don't wanna say";
+    }
     const navImageClasses = classNames(classes.imgRounded, classes.imgGallery);
     return (
       <div>
@@ -93,7 +172,7 @@ class ProfilePage extends React.Component {
           }}
           {...rest}
         />
-        <Parallax small filter image={require("assets/img/profile-bg.jpg")} />
+        <Parallax small filter image={require("assets/img/bg2.jpg")} />
         <div className={classNames(classes.main, classes.mainRaised)}>
           <div>
             <div className={classes.container}>
@@ -114,46 +193,14 @@ class ProfilePage extends React.Component {
               
               
                   <label htmlFor="username">Username</label>
-                  <CustomInput
-                        labelText={this.props.profileInfo.username}
-                        id="username"
-                        onChange={this.handleChange}
-                        
-                        formControlProps={{
-                          fullWidth: true
-                        }}
-                        inputProps={{
-                          onChange: this.handleChange,
-                          type: "text",
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <Icon className={classes.inputIconsColor}>
-                                account_box
-                              </Icon>
-                            </InputAdornment>
-                          )
-                          
-                        }}
-                      />
+                  <p/>
+                  <label htmlFor="username">{this.props.profileInfo.username}</label>
+                  <p/>
                       <label htmlFor="email">Email Address</label>
-                      <CustomInput
-                        labelText={this.props.profileInfo.email}
-                        id="email"
-                        onChange={this.handleChange}
-                        
-                        formControlProps={{
-                          fullWidth: true
-                        }}
-                        inputProps={{
-                          onChange: this.handleChange,
-                          type: "email",
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <Email className={classes.inputIconsColor} />
-                            </InputAdornment>
-                          )
-                        }}
-                      />
+                      <p/>
+                      <label htmlFor="email">{this.props.profileInfo.email}</label>
+                      <p/>
+
                       <label htmlFor="first_name">First Name</label>
                       <CustomInput
                         labelText={this.props.profileInfo.first_name}
@@ -166,6 +213,8 @@ class ProfilePage extends React.Component {
                         inputProps={{
                           onChange: this.handleChange,
                           type: "text",
+                          name: 'first_name',
+                          id: 'first_name',
                           
 
                         }}
@@ -182,13 +231,15 @@ class ProfilePage extends React.Component {
                         inputProps={{
                           onChange: this.handleChange,
                           type: "text",
+                          name: 'last_name',
+                          id: 'last_name',
                           
                         }}
                       />
-                      <label htmlFor="locations">Locations</label>
+                      <label htmlFor="location">Locations</label>
                       <CustomInput
-                        labelText={this.props.profileInfo.locations}
-                        id="locations"
+                        labelText={this.props.profileInfo.location}
+                        id="location"
                         onChange={this.handleChange}
                         
                         formControlProps={{
@@ -197,33 +248,39 @@ class ProfilePage extends React.Component {
                         inputProps={{
                           onChange: this.handleChange,
                           type: "text",
+                          name: 'location',
+                          id: 'location',
                           
                         }}
                       />
                       <label htmlFor="gender">Gender</label>
-                      <CustomDropdown
-                        buttonText="Gender"
-                        dropdownList={[
-                          "Woman",
-                          "Man",
-                          "Other/Don't wanna say",
-                        ]}
-                        id="gender"
-                        onChange={this.handleChange}
-                        
-                        formControlProps={{
-                          fullWidth: true
-                        }}
-                        inputProps={{
-                          onChange: this.handleChange,
-                          type: "text",
-                          
-                        }}
-                      />
+                      <p/>
                       
+                     
+                      <label htmlFor="gender">{genString}</label>
+            
+                      
+                      
+                      <p/>
+                      <Select
+                        labelText={this.props.profileInfo.gender}
+                        value={this.state.gender}
+                        onChange={this.handleChange}
+                        inputProps={{
+                          name: 'gender',
+                          id: 'gender',
+                        }}
+                      >
+
+                        
+                        <MenuItem value={"1"}>Male</MenuItem>
+                        <MenuItem value={"2"}>Female</MenuItem>
+                        <MenuItem value={"3"}>OtherDon't wanna say</MenuItem>
+                      </Select>
+                      <p/>
                   
 
-                <Button simple color="primary" size="lg" onClick={this.handleRegister}>
+                <Button simple color="primary" size="lg" onClick={this.handleEdit}>
                         Edit Profile
                 </Button>
              
